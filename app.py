@@ -22,12 +22,27 @@ st.write("Upload a blood smear image to detect malaria")
 @st.cache_resource
 def load_model():
     import os
+    import gdown
+    
     model_path = "malaria_hybrid_model.keras"
-    if os.path.exists(model_path):
+    google_drive_id = "1MEJW7M3USJb4kdRhr0w-L6SBLvWVr9eM"
+    
+    # Download model from Google Drive if not already present
+    if not os.path.exists(model_path):
+        st.info("📥 Downloading model from Google Drive... (this may take a moment)")
+        url = f"https://drive.google.com/uc?id={google_drive_id}"
+        try:
+            gdown.download(url, model_path, quiet=False)
+            st.success("✅ Model downloaded successfully!")
+        except Exception as e:
+            st.error(f"❌ Failed to download model: {str(e)}")
+            return None
+    
+    # Load the model
+    try:
         return tf.keras.models.load_model(model_path)
-    else:
-        st.warning("⚠️ Model file not found!")
-        st.info("To deploy this app with predictions, you need to upload the trained model.")
+    except Exception as e:
+        st.error(f"❌ Failed to load model: {str(e)}")
         return None
 
 model = load_model()
