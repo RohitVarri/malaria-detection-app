@@ -21,7 +21,14 @@ st.write("Upload a blood smear image to detect malaria")
 # ----------------------------------
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model("malaria_hybrid_model.keras")
+    import os
+    model_path = "malaria_hybrid_model.keras"
+    if os.path.exists(model_path):
+        return tf.keras.models.load_model(model_path)
+    else:
+        st.warning("⚠️ Model file not found!")
+        st.info("To deploy this app with predictions, you need to upload the trained model.")
+        return None
 
 model = load_model()
 
@@ -54,9 +61,12 @@ if uploaded_file is not None:
     # Prediction
     # ----------------------------------
     if st.button("Predict"):
-        prediction = model.predict(img_array)
-        predicted_class = class_names[np.argmax(prediction)]
-        confidence = np.max(prediction) * 100
+        if model is None:
+            st.error("❌ Model not loaded. Cannot make predictions without the trained model file.")
+        else:
+            prediction = model.predict(img_array)
+            predicted_class = class_names[np.argmax(prediction)]
+            confidence = np.max(prediction) * 100
 
-        st.success(f"Prediction: **{predicted_class}**")
-        st.info(f"Confidence: **{confidence:.2f}%**")
+            st.success(f"Prediction: **{predicted_class}**")
+            st.info(f"Confidence: **{confidence:.2f}%**")
